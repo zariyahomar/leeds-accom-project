@@ -77,11 +77,6 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-[#F5F1E9] font-sans">
       {/* Header */}
-    
-        className={`fixed top-0 left-0 w-full z-50 flex items-center justify-between px-8 py-5 transition-colors duration-300 ${
-          scrolled ? "bg-[#F5F1E9] text-zinc-900 shadow-sm" : "bg-transparent text-white"
-        }`}
-      
         <Navbar scrolled={scrolled} />
       
 
