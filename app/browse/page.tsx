@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import StarRating from "@/components/StarRating";
 import LocationPin from "@/components/LocationPin";
-import Link from "next/link";
 
 type Listing = {
   id: number;
@@ -43,7 +43,7 @@ const sortOptions = [
 
 type SortValue = (typeof sortOptions)[number]["value"];
 
-/* ---------- Desktop: pure CSS hover, no JS state needed ---------- */
+/* ---------- Desktop: pure CSS hover ---------- */
 function HoverDropdown({
   label,
   activeCount,
@@ -86,50 +86,42 @@ function HoverDropdown({
   );
 }
 
-/* ---------- Mobile: tap to open/close ---------- */
-function TapDropdown({
-  label,
-  activeCount,
+/* ---------- Mobile: full-screen bottom-sheet panel ---------- */
+function MobilePanel({
+  title,
   isOpen,
-  onToggle,
-  align = "left",
+  onClose,
   children,
 }: {
-  label: string;
-  activeCount: number;
+  title: string;
   isOpen: boolean;
-  onToggle: () => void;
-  align?: "left" | "right";
+  onClose: () => void;
   children: React.ReactNode;
 }) {
-  return (
-    <div className="relative flex-shrink-0">
-      <button
-        onClick={onToggle}
-        className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium shadow-sm transition-all duration-200 ${
-          activeCount > 0
-            ? "bg-[#84ab95] border-[#84ab95] text-white"
-            : "bg-white border-zinc-300 text-zinc-700"
-        }`}
-      >
-        <span>
-          {label}
-          {activeCount > 0 ? ` (${activeCount})` : ""}
-        </span>
-        <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+  if (!isOpen) return null;
 
-      {isOpen && (
-        <div
-          className={`absolute top-full mt-2 w-56 bg-white border border-zinc-200 rounded-xl shadow-lg p-3 z-50 ${
-            align === "right" ? "right-0" : "left-0"
-          }`}
-        >
-          {children}
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/40 flex items-end sm:hidden" onClick={onClose}>
+      <div
+        className="w-full bg-white rounded-t-3xl max-h-[80vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+          <h3 className="font-serif text-lg font-medium text-zinc-900">{title}</h3>
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-700 text-xl leading-none px-2">
+            ✕
+          </button>
         </div>
-      )}
+        <div className="overflow-y-auto px-5 py-4 flex-1">{children}</div>
+        <div className="px-5 py-4 border-t border-zinc-100">
+          <button
+            onClick={onClose}
+            className="w-full bg-[#84ab95] hover:bg-[#76886F] text-white rounded-full py-3 font-medium"
+          >
+            Show results
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -140,10 +132,7 @@ export default function BrowsePage() {
   const [selectedPriceLabel, setSelectedPriceLabel] = useState<string | null>(null);
   const [minRating, setMinRating] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortValue>("default");
-  const [openMobile, setOpenMobile] = useState<string | null>(null);
-
-  const toggleMobile = (name: string) =>
-    setOpenMobile((current) => (current === name ? null : name));
+  const [mobilePanel, setMobilePanel] = useState<"filters" | "sort" | null>(null);
 
   const toggleArea = (area: string) =>
     setSelectedAreas((current) =>
@@ -161,6 +150,9 @@ export default function BrowsePage() {
     type: selectedTypes.length,
     rating: minRating ? 1 : 0,
   };
+
+  const totalActiveFilters =
+    activeFilterCount.area + activeFilterCount.price + activeFilterCount.type + activeFilterCount.rating;
 
   const filteredListings = useMemo(() => {
     let result = listings.filter((listing) => {
@@ -186,10 +178,10 @@ export default function BrowsePage() {
   }, [selectedAreas, selectedTypes, selectedPriceLabel, minRating, sortBy]);
 
   const areaContent = (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {areaOptions.map((area) => (
-        <label key={area} className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
-          <input type="checkbox" checked={selectedAreas.includes(area)} onChange={() => toggleArea(area)} className="accent-[#84ab95]" />
+        <label key={area} className="flex items-center gap-3 text-sm text-zinc-700 cursor-pointer">
+          <input type="checkbox" checked={selectedAreas.includes(area)} onChange={() => toggleArea(area)} className="accent-[#84ab95] w-4 h-4" />
           {area}
         </label>
       ))}
@@ -197,16 +189,16 @@ export default function BrowsePage() {
   );
 
   const priceContent = (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {priceOptions.map((p) => (
-        <label key={p.label} className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
+        <label key={p.label} className="flex items-center gap-3 text-sm text-zinc-700 cursor-pointer">
           <input
             type="radio"
             name="price"
             checked={selectedPriceLabel === p.label}
             onClick={() => setSelectedPriceLabel(selectedPriceLabel === p.label ? null : p.label)}
             onChange={() => {}}
-            className="accent-[#84ab95]"
+            className="accent-[#84ab95] w-4 h-4"
           />
           {p.label}
         </label>
@@ -215,10 +207,10 @@ export default function BrowsePage() {
   );
 
   const typeContent = (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {typeOptions.map((type) => (
-        <label key={type} className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
-          <input type="checkbox" checked={selectedTypes.includes(type)} onChange={() => toggleType(type)} className="accent-[#84ab95]" />
+        <label key={type} className="flex items-center gap-3 text-sm text-zinc-700 cursor-pointer">
+          <input type="checkbox" checked={selectedTypes.includes(type)} onChange={() => toggleType(type)} className="accent-[#84ab95] w-4 h-4" />
           {type}
         </label>
       ))}
@@ -226,16 +218,16 @@ export default function BrowsePage() {
   );
 
   const ratingContent = (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {ratingOptions.map((r) => (
-        <label key={r} className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
+        <label key={r} className="flex items-center gap-3 text-sm text-zinc-700 cursor-pointer">
           <input
             type="radio"
             name="rating"
             checked={minRating === r}
             onClick={() => setMinRating(minRating === r ? null : r)}
             onChange={() => {}}
-            className="accent-[#84ab95]"
+            className="accent-[#84ab95] w-4 h-4"
           />
           {r}+ stars
         </label>
@@ -250,9 +242,9 @@ export default function BrowsePage() {
           key={opt.value}
           onClick={() => {
             setSortBy(opt.value);
-            setOpenMobile(null);
+            setMobilePanel(null);
           }}
-          className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+          className={`w-full text-left px-3 py-3 rounded-lg text-sm ${
             sortBy === opt.value ? "bg-[#EFF3EF] text-[#5C6E5D] font-medium" : "text-zinc-700 hover:bg-zinc-50"
           }`}
         >
@@ -264,8 +256,15 @@ export default function BrowsePage() {
 
   const sortLabel = `Sort by${sortBy !== "default" ? `: ${sortOptions.find((s) => s.value === sortBy)?.label}` : ""}`;
 
+  const clearAllFilters = () => {
+    setSelectedAreas([]);
+    setSelectedTypes([]);
+    setSelectedPriceLabel(null);
+    setMinRating(null);
+  };
+
   return (
-    <div className="min-h-screen bg-[#F5F1E9]" onClick={() => setOpenMobile(null)}>
+    <div className="min-h-screen bg-[#F5F1E9]">
       <Navbar />
 
       <main className="pt-24 sm:pt-28 px-4 sm:px-6 pb-16">
@@ -311,7 +310,7 @@ export default function BrowsePage() {
           </div>
         </section>
 
-        {/* Filter chips - DESKTOP (hover) */}
+        {/* Filter row - DESKTOP (hover) */}
         <div className="hidden sm:block w-full border-t border-zinc-200 mt-10 pt-8">
           <div className="flex flex-wrap justify-center gap-4">
             <HoverDropdown label="Area" activeCount={activeFilterCount.area}>{areaContent}</HoverDropdown>
@@ -321,21 +320,37 @@ export default function BrowsePage() {
           </div>
         </div>
 
-        {/* Filter chips - MOBILE (tap) */}
-        <div className="sm:hidden w-full border-t border-zinc-200 mt-8 pt-6" onClick={(e) => e.stopPropagation()}>
-          <div className="flex overflow-x-auto gap-3 -mx-1 px-1 pb-2 no-scrollbar">
-            <TapDropdown label="Area" activeCount={activeFilterCount.area} isOpen={openMobile === "area"} onToggle={() => toggleMobile("area")}>{areaContent}</TapDropdown>
-            <TapDropdown label="Price" activeCount={activeFilterCount.price} isOpen={openMobile === "price"} onToggle={() => toggleMobile("price")}>{priceContent}</TapDropdown>
-            <TapDropdown label="Type" activeCount={activeFilterCount.type} isOpen={openMobile === "type"} onToggle={() => toggleMobile("type")}>{typeContent}</TapDropdown>
-            <TapDropdown label="Rating" activeCount={activeFilterCount.rating} isOpen={openMobile === "rating"} onToggle={() => toggleMobile("rating")}>{ratingContent}</TapDropdown>
+        {/* Filter row - MOBILE (two buttons open full-screen panels) */}
+        <div className="sm:hidden w-full border-t border-zinc-200 mt-8 pt-6">
+          <div className="flex gap-3">
+            <button
+              onClick={() => setMobilePanel("filters")}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-medium shadow-sm ${
+                totalActiveFilters > 0
+                  ? "bg-[#84ab95] border-[#84ab95] text-white"
+                  : "bg-white border-zinc-300 text-zinc-700"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M6 8h12M9 12h6M11 16h2" />
+              </svg>
+              Filters{totalActiveFilters > 0 ? ` (${totalActiveFilters})` : ""}
+            </button>
+
+            <button
+              onClick={() => setMobilePanel("sort")}
+              className="flex-1 flex items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-3 text-sm font-medium text-zinc-700 shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h10M3 12h6M3 17h3M17 7v10m0 0l-3-3m3 3l3-3" />
+              </svg>
+              Sort
+            </button>
           </div>
         </div>
 
         {/* Results header */}
-        <div
-          className="max-w-6xl mx-auto mt-8 sm:mt-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="max-w-6xl mx-auto mt-8 sm:mt-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
           <p className="text-sm sm:text-base text-zinc-600">
             Showing <span className="font-semibold text-zinc-900">{filteredListings.length}</span> accommodations
           </p>
@@ -344,19 +359,16 @@ export default function BrowsePage() {
           <div className="hidden sm:block">
             <HoverDropdown label={sortLabel} activeCount={0} align="right">{sortContent}</HoverDropdown>
           </div>
-
-          {/* Mobile sort - tap */}
-          <div className="sm:hidden">
-            <TapDropdown label={sortLabel} activeCount={0} isOpen={openMobile === "sort"} onToggle={() => toggleMobile("sort")} align="right">
-              {sortContent}
-            </TapDropdown>
-          </div>
         </div>
 
         {/* Listing grid */}
         <div className="max-w-6xl mx-auto mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredListings.map((listing) => (
-            <Link key={listing.id} href={`/accommodation/${listing.id}`} className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-5 flex flex-col gap-2">
+            <Link
+              key={listing.id}
+              href={`/accommodation/${listing.id}`}
+              className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-5 flex flex-col gap-2 hover:shadow-md transition-shadow"
+            >
               <h3 className="font-serif font-medium text-lg text-zinc-900">{listing.name}</h3>
               <p className="text-zinc-400 font-light text-sm flex items-center gap-1">
                 <LocationPin className="w-3.5 h-3.5" />
@@ -386,6 +398,38 @@ export default function BrowsePage() {
           )}
         </div>
       </main>
+
+      {/* Mobile Filters panel */}
+      <MobilePanel title="Filters" isOpen={mobilePanel === "filters"} onClose={() => setMobilePanel(null)}>
+        <div className="flex justify-end mb-2">
+          <button onClick={clearAllFilters} className="text-sm text-[#6B7D6C] hover:underline">
+            Clear all
+          </button>
+        </div>
+        <div className="flex flex-col gap-6">
+          <div>
+            <h4 className="text-sm font-semibold text-zinc-900 mb-3">Area</h4>
+            {areaContent}
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-zinc-900 mb-3">Price</h4>
+            {priceContent}
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-zinc-900 mb-3">Accommodation Type</h4>
+            {typeContent}
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-zinc-900 mb-3">Rating</h4>
+            {ratingContent}
+          </div>
+        </div>
+      </MobilePanel>
+
+      {/* Mobile Sort panel */}
+      <MobilePanel title="Sort by" isOpen={mobilePanel === "sort"} onClose={() => setMobilePanel(null)}>
+        {sortContent}
+      </MobilePanel>
     </div>
   );
 }

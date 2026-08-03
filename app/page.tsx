@@ -19,6 +19,7 @@ type Listing = {
 
 type Review = {
   id: number;
+  listingId: number;
   listingName: string;
   area: string;
   rating: number;
@@ -41,6 +42,7 @@ const listings: Listing[] = [
 const recentReviews: Review[] = [
   {
     id: 1,
+    listingId: 4,
     listingName: "Woodhouse Lane Flats",
     area: "Woodhouse",
     rating: 4,
@@ -52,6 +54,7 @@ const recentReviews: Review[] = [
   },
   {
     id: 2,
+    listingId: 6,
     listingName: "Burley Road House Share",
     area: "Burley",
     rating: 5,
@@ -77,8 +80,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-[#F5F1E9] font-sans">
       {/* Header */}
-        <Navbar scrolled={scrolled} />
-      
+      <Navbar scrolled={scrolled} />
 
       {/* Hero */}
       <section
@@ -94,11 +96,11 @@ export default function Home() {
           <h1 className="font-serif text-4xl sm:text-5xl italic font-normal text-[#87ad98] mb-6">
             you can trust.
           </h1>
-          <p className="max-w-md text-zinc-200 mb-10 font-light">
+          <p className="max-w-xs sm:max-w-md text-sm sm:text-base text-zinc-200 mb-5 sm:mb-8 font-light px-2">
             Honest reviews from Leeds students, for Leeds students. No spin, no landlord edits.
           </p>
 
-          <form className="w-full max-w-4xl bg-[#F5F1E9] rounded-full shadow-xl p-3 flex items-center mt-8">
+          <form className="w-full max-w-4xl bg-[#F5F1E9] rounded-full shadow-xl p-2  sm:p-3 flex items-center mt-3 sm:mt-5">
             <Search
               className="ml-4 text-[#84ab95]" size ={24}
             />
@@ -106,12 +108,12 @@ export default function Home() {
             <input
               type="text"
               placeholder="Search accommodation..."
-              className="flex-grow bg-transparent text-zinc-900 placeholder-zinc-400 px-4 py-2 rounded-full focus:outline-none"
+              className="flex-grow bg-transparent text-zinc-900 placeholder-zinc-400  px-3 sm:px-4 py-2 text-sm sm:text-base rounded-full focus:outline-none"
             />
 
             <button
               type="submit"
-              className="bg-[#84ab95] hover:bg-[#76886F] text-white rounded-full px-8 py-2 font-medium"
+              className="bg-[#84ab95] hover:bg-[#76886F] text-white rounded-full px-5  sm:px-8 py-2 text-sm sm:text-base font-medium transition-colors duration-200 ml-3 sm:ml-5"
             >
               Search
             </button>
@@ -121,7 +123,7 @@ export default function Home() {
 
       {/* Featured in Leeds */}
       <section id="browse" className="px-8 py-16 max-w-5xl mx-auto w-full">
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
           <div>
             <span className="text-[#6B7D6C] text-xs font-semibold uppercase tracking-wide">
               Top Picks
@@ -132,86 +134,119 @@ export default function Home() {
           </div>
          <Link
             href="/browse"
-            className="text-[#6B7D6C] text-sm font-medium hover:underline"
+            className="text-[#6B7D6C] text-sm font-medium hover:underline self-start sm:self-auto"
           >
            View all listings →
         </Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {listings.map((listing) => (
-            <Link
-              key={listing.id}
-              href={`/accommodation/${listing.id}`}
-              className="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2"
-            >
-              <h3 className="font-serif font-medium text-lg text-zinc-900">{listing.name}</h3>
-              <p className="text-zinc-400 font-light text-sm flex items-center gap-1">
-                <LocationPin className="w-3.5 h-3.5" />
-                {listing.area}
-              </p>
-              <p className="text-zinc-500 text-xs">{listing.tag}</p>
+        <div className="relative">
 
-              {listing.reviewCount > 0 ? (
-                <div className="flex items-center gap-2 mt-1">
-                  <StarRating rating={Math.round(listing.rating ?? 0)} />
-                  <span className="text-xs text-zinc-500">({listing.reviewCount})</span>
-                </div>
-              ) : (
-                <span className="text-sm font-medium text-zinc-500 mt-1">
-                  No reviews yet
-                </span>
-              )}
+  {/* Mobile Left Fade */}
+  <div className="sm:hidden pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-[#F5F1E9] to-transparent z-10" />
 
-              <span className="text-sm text-zinc-700 mt-1">
-                {listing.price ? `£${listing.price}/mo` : "Price unknown"}
-              </span>
-            </Link>
-          ))}
-        </div>
+  {/* Mobile Right Fade */}
+  <div className="sm:hidden pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-[#F5F1E9] to-transparent z-10" />
+
+  <div className="flex gap-6 overflow-x-auto px-6 pb-4 no-scrollbar snap-x snap-mandatory">
+    {listings.map((listing) => (
+      <Link
+        key={listing.id}
+        href={`/accommodation/${listing.id}`}
+        className="flex-shrink-0 w-[300px] sm:w-[340px] bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 snap-start hover:shadow-lg transition-all duration-300"
+      >
+        <h3 className="font-serif font-medium text-lg text-zinc-900">
+          {listing.name}
+        </h3>
+
+        <p className="text-zinc-400 font-light text-sm flex items-center gap-1">
+          <LocationPin className="w-3.5 h-3.5" />
+          {listing.area}
+        </p>
+
+        <p className="text-zinc-500 text-xs">
+          {listing.tag}
+        </p>
+
+        {listing.reviewCount > 0 ? (
+          <div className="flex items-center gap-2 mt-1">
+            <StarRating rating={Math.round(listing.rating ?? 0)} />
+            <span className="text-xs text-zinc-500">
+              ({listing.reviewCount})
+            </span>
+          </div>
+        ) : (
+          <span className="text-sm font-medium text-zinc-500 mt-1">
+            No reviews yet
+          </span>
+        )}
+
+        <span className="text-sm text-zinc-700 mt-1">
+          {listing.price ? `£${listing.price}/mo` : "Price unknown"}
+        </span>
+      </Link>
+    ))}
+  </div>
+
+</div>
       </section>
 
       {/* Recently Reviewed */}
-      <section className="bg-[#EFF3EF] px-8 py-16">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <span className="text-[#6B7D6C] text-xs font-semibold uppercase tracking-wide">
-                Fresh In
-              </span>
-              <h2 className="font-serif text-3xl font-medium text-zinc-900">
-                Recently Reviewed
-              </h2>
-            </div>
-            <Link
-              href="/browse"
-              className="text-[#6B7D6C] text-sm font-medium hover:underline"
-            >
-              All reviews →
-            </Link>
-          </div>
+<section className="bg-[#EFF3EF]">
+  <div className="max-w-5xl mx-auto w-full px-8 py-16">
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
+      <div>
+        <span className="text-[#6B7D6C] text-xs font-semibold uppercase tracking-wide">
+          Fresh In
+        </span>
+        <h2 className="font-serif text-3xl font-medium text-zinc-900">
+          Recently Reviewed
+        </h2>
+      </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentReviews.map((review) => (
-              // not clickable till supabase created
-              <div
-                key={review.id}
-                className="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2"
-              >
-                <h3 className="font-serif font-medium text-lg text-zinc-900">
-                  {review.listingName}
-                </h3>
-                <p className="text-zinc-400 font-light text-sm flex items-center gap-1">
-                  <LocationPin className="w-3.5 h-3.5" />
-                  {review.area}
-                </p>
-                <StarRating rating={review.rating} />
-                <p className="text-zinc-600 text-sm italic mt-1">"{review.quote}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Link
+        href="/browse"
+        className="text-[#6B7D6C] text-sm font-medium hover:underline self-start sm:self-auto"
+      >
+        All reviews →
+      </Link>
+    </div>
+
+    <div className="relative">
+
+      {/* Mobile Left Fade */}
+      <div className="sm:hidden pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-[#EFF3EF] to-transparent z-10" />
+
+      {/* Mobile Right Fade */}
+      <div className="sm:hidden pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-[#EFF3EF] to-transparent z-10" />
+
+      <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
+        {recentReviews.map((review) => (
+          <Link
+            key={review.id}
+            href={`/accommodation/${review.listingId}`}
+            className="flex-shrink-0 w-[300px] sm:w-[340px] bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 snap-start hover:shadow-lg transition-all duration-300"
+          >
+            <h3 className="font-serif font-medium text-lg text-zinc-900">
+              {review.listingName}
+            </h3>
+
+            <p className="text-zinc-400 font-light text-sm flex items-center gap-1">
+              <LocationPin className="w-3.5 h-3.5" />
+              {review.area}
+            </p>
+
+            <StarRating rating={review.rating} />
+
+            <p className="text-zinc-600 text-sm italic mt-1">
+              "{review.quote}"
+            </p>
+          </Link>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* How it works */}
       <section id="how-it-works" className="bg-[#F5F1E9] px-8 py-16">
@@ -266,9 +301,9 @@ export default function Home() {
           </div>
 
             <a
-            href="#browse"
-            className="inline-block bg-[#84ab95] hover:bg-[#76886F] text-white rounded-full px-8 py-3 font-medium"
-          >
+              href="#browse"
+              className="inline-block bg-[#84ab95] hover:bg-[#76886F] text-white rounded-full px-8 py-3 font-medium"
+            >
             Browse all accommodations
           </a>
         </div>
