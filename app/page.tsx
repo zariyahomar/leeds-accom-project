@@ -105,7 +105,7 @@ export default function Home() {
 
             <input
               type="text"
-              placeholder="Search accommodation name..."
+              placeholder="Search accommodation..."
               className="flex-grow bg-transparent text-zinc-900 placeholder-zinc-400 px-4 py-2 rounded-full focus:outline-none"
             />
 
@@ -132,7 +132,7 @@ export default function Home() {
           </div>
          <Link
             href="/browse"
-            className="text-[#6F8E7B] hover:text-[#84ab95] transition"
+            className="text-[#6B7D6C] text-sm font-medium hover:underline"
           >
            View all listings →
         </Link>
@@ -140,8 +140,9 @@ export default function Home() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {listings.map((listing) => (
-            <div
+            <Link
               key={listing.id}
+              href={`/accommodation/${listing.id}`}
               className="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2"
             >
               <h3 className="font-serif font-medium text-lg text-zinc-900">{listing.name}</h3>
@@ -165,7 +166,7 @@ export default function Home() {
               <span className="text-sm text-zinc-700 mt-1">
                 {listing.price ? `£${listing.price}/mo` : "Price unknown"}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -182,13 +183,17 @@ export default function Home() {
                 Recently Reviewed
               </h2>
             </div>
-            <a href="#" className="text-[#6B7D6C] text-sm font-medium hover:underline">
+            <Link
+              href="/browse"
+              className="text-[#6B7D6C] text-sm font-medium hover:underline"
+            >
               All reviews →
-            </a>
+            </Link>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {recentReviews.map((review) => (
+              // not clickable till supabase created
               <div
                 key={review.id}
                 className="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2"
