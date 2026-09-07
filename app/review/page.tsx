@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -196,7 +196,7 @@ function SectionHeading({
   );
 }
 
-export default function WriteReviewPage() {
+function WriteReviewForm() {
   const searchParams = useSearchParams();
   const listingIdParam = searchParams.get("listing");
 
@@ -728,5 +728,13 @@ export default function WriteReviewPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function WriteReviewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F5F1E9]" />}>
+      <WriteReviewForm />
+    </Suspense>
   );
 }
